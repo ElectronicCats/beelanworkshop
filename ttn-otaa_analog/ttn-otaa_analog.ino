@@ -37,13 +37,13 @@
 // first. When copying an EUI from ttnctl output, this means to reverse
 // the bytes. For TTN issued EUIs the last bytes should be 0xD5, 0xB3,
 // 0x70. 00 00 00 00 00 00 0A E2
-static const u1_t PROGMEM APPEUI[8] = { 0x89, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+static const u1_t PROGMEM APPEUI[8] = { 0x49, 0x49, 0x02, 0x40, 0x78, 0x72, 0x72, 0x58};
 void os_getArtEui (u1_t* buf) {
   memcpy_P(buf, APPEUI, 8);
 }
 
 // This should also be in little endian format, see above.
-static const u1_t PROGMEM DEVEUI[8] = { 0x45, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+static const u1_t PROGMEM DEVEUI[8] = { 0x28, 0x28, 0x28, 0x48, 0x92, 0x49, 0x92, 0x48 };
 void os_getDevEui (u1_t* buf) {
   memcpy_P(buf, DEVEUI, 8);
 }
@@ -51,7 +51,7 @@ void os_getDevEui (u1_t* buf) {
 // number but a block of memory, endianness does not really apply). In
 // practice, a key taken from ttnctl can be copied as-is.
 // The key shown here is the semtech default key.
-static const u1_t PROGMEM APPKEY[16] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x23 };
+static const u1_t PROGMEM APPKEY[16] = { 0x89, 0x48, 0x94, 0x59, 0x49, 0x20, 0x49, 0x24, 0x09, 0x24, 0x09, 0x24, 0x09, 0x48, 0x48, 0x55 };
 void os_getDevKey (u1_t* buf) {
   memcpy_P(buf, APPKEY, 16);
 }
@@ -60,7 +60,7 @@ static osjob_t sendjob;
 
 // Schedule TX every this many seconds (might become longer due to duty
 // cycle limitations).
-const unsigned TX_INTERVAL = 10;
+const unsigned TX_INTERVAL = 30;
 
 // Pin mapping
 const lmic_pinmap lmic_pins = {
@@ -91,10 +91,6 @@ void onEvent (ev_t ev) {
             break;
         case EV_JOINED:
             Serial.println(F("EV_JOINED"));
-
-            // Disable link check validation (automatically enabled
-            // during join, but not supported by TTN at this time).
-            //LMIC_setLinkCheckMode(0);
             break;
         case EV_RFU1:
             Serial.println(F("EV_RFU1"));
@@ -171,7 +167,8 @@ void setup() {
     os_init();
     // Reset the MAC state. Session and pending data transfers will be discarded.
     LMIC_reset();
-    //Configuration for Multitech Conduit SubBand 7
+    
+    //Configuration for SubBand 7
       for (int channel=0; channel<72; ++channel) {
       LMIC_disableChannel(channel);
     }
