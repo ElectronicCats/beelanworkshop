@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Example</title>
+  <script src="http://code.highcharts.com/highcharts.js"></script>
+</head>
+
+<body>
+  <div id="container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+  <script>
+    // Copie y pegue la ruta de la api del nodo que quieren mostrar
+    //      AQUI  ↓ 
+    const url = '  ';
+    // ------------------------------------------------------------  //
+    const getData = () => {
+      fetch(url)
+        .then((response) => response.json())
+        // la respuesta es un Array con todos los datos registrados obtenemos los ultimos 10
+        .then((response) => parseData(response.slice(Math.max(response.length - 10, 1))))
+        .then((response) => startChart(response))
+        .catch((err) => console.log(err));
+    }
+    // La data de cada uno de los paquetes recividos esta en base64
+    const parseData = (data) => {
+      // la data de cada uno de los objetos sera convertida de base64 a hexa y de hexa a decimal
+      return data.map((item) => {
+        return parseInt(base64toHEX(item.data), 16);
+      })
+    }
+
+    const base64toHEX = (base64) => {
+      const raw = atob(base64);
+      let HEX = '';
+      for (let i = 0; i < raw.length; i++) {
+        const hex = raw.charCodeAt(i).toString(16);
+        HEX += (hex.length === 2 ? hex : `0${hex}`);
+      }
+      return HEX.toUpperCase();
+    }
+
+    // libreria para grafica
+    const startChart = (data) => {
+      Highcharts.chart('container', {
+        title: {
+          text: 'Lora receiving data'
+        },
+        series: [{data: data}]
+      });
+    };
+
+  // se manda a pedir los datos para la carga inicial
+    getData();
+  // se genera un intervalode tiempo para que cada 1s pida mas informacion
+    setInterval(() => {
+      getData();
+    }, 10000);
+  </script>
+</body>
+
+</html>
