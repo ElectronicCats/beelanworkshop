@@ -1,34 +1,3 @@
-/*******************************************************************************
- * Copyright (c) 2015 Thomas Telkamp and Matthijs Kooijman
- *
- * Permission is hereby granted, free of charge, to anyone
- * obtaining a copy of this document and accompanying files,
- * to do whatever they want with them without any restriction,
- * including, but not limited to, copying, modification and redistribution.
- * NO WARRANTY OF ANY KIND IS PROVIDED.
- *
- * This example sends a valid LoRaWAN packet with payload "Hello,
- * world!", using frequency and encryption settings matching those of
- * the The Things Network.
- *
- * This uses OTAA (Over-the-air activation), where where a DevEUI and
- * application key is configured, which are used in an over-the-air
- * activation procedure where a DevAddr and session keys are
- * assigned/generated for use with all further communication.
- *
- * Note: LoRaWAN per sub-band duty-cycle limitation is enforced (1% in
- * g1, 0.1% in g2), but not the TTN fair usage policy (which is probably
- * violated by this sketch when left running for longer)!
-
- * To use this sketch, first register your application and device with
- * the things network, to set or generate an AppEUI, DevEUI and AppKey.
- * Multiple devices can use the same AppEUI, but each device has its own
- * DevEUI and AppKey.
- *
- * Do not forget to define the radio type correctly in config.h.
- *
- *******************************************************************************/
-
 #include <lmic.h>
 #include <hal/hal.h>
 #include <SPI.h>
@@ -37,13 +6,13 @@
 // first. When copying an EUI from ttnctl output, this means to reverse
 // the bytes. For TTN issued EUIs the last bytes should be 0xD5, 0xB3,
 // 0x70. 00 00 00 00 00 00 0A E2
-static const u1_t PROGMEM APPEUI[8] = { 0x49, 0x49, 0x02, 0x40, 0x78, 0x72, 0x72, 0x58};
+static const u1_t PROGMEM APPEUI[8] = {0x20,0x34,0x00,0xF0,0x7E,0xD5,0xB3,0x70};
 void os_getArtEui (u1_t* buf) {
   memcpy_P(buf, APPEUI, 8);
 }
 
 // This should also be in little endian format, see above.
-static const u1_t PROGMEM DEVEUI[8] = { 0x28, 0x28, 0x28, 0x48, 0x92, 0x49, 0x92, 0x48 };
+static const u1_t PROGMEM DEVEUI[8] = {0x23,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
 void os_getDevEui (u1_t* buf) {
   memcpy_P(buf, DEVEUI, 8);
 }
@@ -51,7 +20,7 @@ void os_getDevEui (u1_t* buf) {
 // number but a block of memory, endianness does not really apply). In
 // practice, a key taken from ttnctl can be copied as-is.
 // The key shown here is the semtech default key.
-static const u1_t PROGMEM APPKEY[16] = { 0x89, 0x48, 0x94, 0x59, 0x49, 0x20, 0x49, 0x24, 0x09, 0x24, 0x09, 0x24, 0x09, 0x48, 0x48, 0x55 };
+static const u1_t PROGMEM APPKEY[16] = {0xB1,0x83,0xBC,0x89,0xE8,0xAF,0x9D,0x71,0xE4,0x2A,0x65,0x9D,0x2C,0xA7,0xF9,0xCA};
 void os_getDevKey (u1_t* buf) {
   memcpy_P(buf, APPKEY, 16);
 }
@@ -66,7 +35,7 @@ const unsigned TX_INTERVAL = 30;
 const lmic_pinmap lmic_pins = {
     .nss = 10,
     .rxtx = LMIC_UNUSED_PIN,
-    .rst = 5,
+    .rst = 9,
     .dio = {2, 3, 4},
 };
 
@@ -103,13 +72,20 @@ void onEvent (ev_t ev) {
             break;
             break;
         case EV_TXCOMPLETE:
-            Serial.println(F("EV_TXCOMPLETE (includes waiting for RX windows)"));
+             Serial.println(F("EV_TXCOMPLETE (includes waiting for RX windows)"));
             if (LMIC.txrxFlags & TXRX_ACK)
               Serial.println(F("Received ack"));
             if (LMIC.dataLen) {
-              Serial.println(F("Received "));
-              Serial.println(LMIC.dataLen);
+              Serial.print(F("Received "));
+              Serial.print(LMIC.dataLen);
               Serial.println(F(" bytes of payload"));
+              uint8_t downlink[LMIC.dataLen];
+              Serial.write(LMIC.frame+LMIC.dataBeg,LMIC.dataLen);
+              memcpy(&downlink,&(LMIC.frame+LMIC.dataBeg)[0],LMIC.dataLen);
+              // Turn on LED if we get the magic number
+              if(downlink[0]>0){
+              digitalWrite(5, !digitalRead(5));
+              }
             }
             // Schedule next transmission
             os_setTimedCallback(&sendjob, os_getTime()+sec2osticks(TX_INTERVAL), do_send);
@@ -155,6 +131,8 @@ void do_send(osjob_t* j){
 void setup() {
     Serial.begin(9600);
     Serial.println(F("Starting"));
+
+    pinMode(5,OUTPUT);
 
     #ifdef VCC_ENABLE
     // For Pinoccio Scout boards
