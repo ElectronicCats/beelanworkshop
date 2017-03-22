@@ -134,13 +134,6 @@ void setup() {
 
     pinMode(5,OUTPUT);
 
-    #ifdef VCC_ENABLE
-    // For Pinoccio Scout boards
-    pinMode(VCC_ENABLE, OUTPUT);
-    digitalWrite(VCC_ENABLE, HIGH);
-    delay(1000);
-    #endif
-
     // LMIC init
     os_init();
     // Reset the MAC state. Session and pending data transfers will be discarded.

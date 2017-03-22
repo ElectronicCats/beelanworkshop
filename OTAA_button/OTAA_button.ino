@@ -128,13 +128,9 @@ void do_send(osjob_t* j){
 void setup() {
     Serial.begin(9600);
     Serial.println(F("Starting"));
+
+    //Pin Button pullup
     pinMode(8,INPUT_PULLUP);
-    #ifdef VCC_ENABLE
-    // For Pinoccio Scout boards
-    pinMode(VCC_ENABLE, OUTPUT);
-    digitalWrite(VCC_ENABLE, HIGH);
-    delay(1000);
-    #endif
 
     // LMIC init
     os_init();
