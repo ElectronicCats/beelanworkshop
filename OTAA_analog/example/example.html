@@ -14,7 +14,7 @@
   <script>
     // Copie y pegue la ruta de la api del nodo que quieren mostrar
     //      AQUI  ↓
-    const url = '  ';
+    const url = 'http://';
     const options = {
       method: "GET",
       headers: {
@@ -28,7 +28,7 @@
       fetch(url, options)
         .then((response) => response.json())
         // la respuesta es un Array con todos los datos registrados obtenemos los ultimos 10
-        .then((response) => parseData(response.slice(Math.max(response.length - 10, 1))))
+        .then((response) => parseData(response.slice(0, Math.min(10, response.length))))
         .then((response) => startChart(response))
         .catch((err) => console.log(err));
     }
