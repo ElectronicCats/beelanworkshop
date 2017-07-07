@@ -13,11 +13,19 @@
   <div id="container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
   <script>
     // Copie y pegue la ruta de la api del nodo que quieren mostrar
-    //      AQUI  ↓ 
+    //      AQUI  ↓
     const url = '  ';
+    const options = {
+      method: "GET",
+      headers: {
+        // Copie y pegue El Apitoken
+          //      AQUI  ↓
+        authorization: "",
+      }
+    }
     // ------------------------------------------------------------  //
     const getData = () => {
-      fetch(url)
+      fetch(url, options)
         .then((response) => response.json())
         // la respuesta es un Array con todos los datos registrados obtenemos los ultimos 10
         .then((response) => parseData(response.slice(Math.max(response.length - 10, 1))))
